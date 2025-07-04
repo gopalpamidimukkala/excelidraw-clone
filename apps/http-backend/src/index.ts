@@ -5,12 +5,15 @@ import { SignUpSchema, SignInSchema, RoomSchema } from '@repo/common/types'
 import { prismaClient } from '@repo/db/client'
 import { JWT_SECRET } from '@repo/backend-common/config'
 import { middleware } from './middleware'
+import cors from 'cors'
 const app = express()
 const PORT = 3001
 
+app.use(cors())
 app.use(express.json())
 
 app.post('/api/v1/signup', async (req, res) => {
+    console.log("entered the api");
     try {
         const safeParse = SignUpSchema.safeParse(req.body)
 
@@ -58,7 +61,7 @@ try {
                 const token = jwt.sign({
                         userId : response.id
                     },JWT_SECRET)
-                res.status(200).json(token)
+                res.status(200).json({token : token})
             } else {
                 res.status(400).json("Incorrect Password")
                 return
@@ -118,7 +121,7 @@ app.get('/api/v1/room:roomId', async (req, res) => {
     }
 })
 
-app.get('api/v1/room:slug', async (req, res) => {
+app.get('/api/v1/room:slug', async (req, res) => {
     try {
         const slug = req.params.slug;
         const response = await prismaClient.room.findFirst({
@@ -129,6 +132,31 @@ app.get('api/v1/room:slug', async (req, res) => {
         res.status(500).json("Error in the SERVER")
     }
 })
+
+app.get('/api/v1/chats/:roomId', async(req, res) => {
+    try {
+        console.log("chat is called");
+       const roomId = parseInt(req.params.roomId, 10)
+       console.log(roomId);
+        const messages = await prismaClient.chat.findMany({
+            where : {
+                roomId
+            },
+            orderBy : {
+                id : "desc"
+            },
+            take : 1000
+        })
+        console.log(messages)
+        res.json(messages)
+    } catch (error) {
+        res.status(500).json({ messages : [] })
+    }
+})
+
+app.get('/', (req, res) => {
+  res.send("API is alive");
+});
 
 app.listen(PORT, () => {
     console.log(`SERVER IS RUNNING ON PORT ${PORT}`);
