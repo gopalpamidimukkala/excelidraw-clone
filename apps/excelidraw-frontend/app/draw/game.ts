@@ -13,7 +13,13 @@ type Shape = {
     centerY: number;
     radius: number;
 } | {
-    type: "pencil";
+    type: "line";
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+} | {
+    type: "arrow";
     startX: number;
     startY: number;
     endX: number;
@@ -55,7 +61,7 @@ export class Game {
         this.canvas.removeEventListener("mousemove", this.mouseMoveHandler)
     }
 
-    setTool(tool: "circle" | "pencil" | "rect" | "hand") {
+    setTool(tool: "circle" | "line" | "rect" | "hand" | "arrow") {
         this.selectedTool = tool;
     }
 
@@ -92,7 +98,21 @@ export class Game {
                 this.ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
                 this.ctx.stroke();
                 this.ctx.closePath();                
+            } else if (shape.type === "line") {
+                this.ctx.beginPath();
+                this.ctx.moveTo(shape.startX, shape.startY);
+                this.ctx.lineTo(shape.endX, shape.endY);
+                this.ctx.stroke();
+                this.ctx.closePath();
+            } else if (shape.type === "arrow") {
+                this.ctx.beginPath();
+                this.ctx.moveTo(shape.startX, shape.startY);
+                this.ctx.lineTo(shape.endX, shape.endY);
+                this.ctx.stroke();
+                drawArrowHead(this.ctx, shape.startX, shape.startY, shape.endX, shape.endY);
+                this.ctx.closePath();
             }
+
         })
     }
 
@@ -125,7 +145,24 @@ export class Game {
                 centerX: this.startX + radius,
                 centerY: this.startY + radius,
             }
+        } else if (selectedTool === "line") {
+            shape = {
+                type: "line",
+                startX: this.startX,
+                startY: this.startY,
+                endX: e.clientX,
+                endY: e.clientY
+            }
+        } else if (selectedTool === "arrow") {
+            shape = {
+                type: "arrow",
+                startX: this.startX,
+                startY: this.startY,
+                endX: e.clientX,
+                endY: e.clientY
+            }
         }
+
 
         if (!shape) {
             return;
@@ -163,7 +200,21 @@ export class Game {
                 this.ctx.arc(centerX, centerY, Math.abs(radius), 0, Math.PI * 2);
                 this.ctx.stroke();
                 this.ctx.closePath();                
+            } else if (selectedTool === "line") {
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.startX, this.startY);
+                this.ctx.lineTo(e.clientX, e.clientY);
+                this.ctx.stroke();
+                this.ctx.closePath();
+            } else if (selectedTool === "arrow") {
+                this.ctx.beginPath(),
+                this.ctx.moveTo(this.startX, this.startY),
+                this.ctx.lineTo(e.clientX, e.clientY);
+                this.ctx.stroke();
+                drawArrowHead(this.ctx, this.startX, this.startY, e.clientX, e.clientY);
+                this.ctx.closePath();
             }
+
         }
     }
 
@@ -176,3 +227,35 @@ export class Game {
 
     }
 }
+
+function drawArrowHead(
+    ctx: CanvasRenderingContext2D,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    arrowLength = 15,
+    arrowWidth = 7
+) {
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+    const angle = Math.atan2(dy, dx);
+
+    const headLength = arrowLength;
+    const headWidth = arrowWidth;
+
+    const x1 = toX - headLength * Math.cos(angle) + headWidth * Math.sin(angle);
+    const y1 = toY - headLength * Math.sin(angle) - headWidth * Math.cos(angle);
+
+    const x2 = toX - headLength * Math.cos(angle) - headWidth * Math.sin(angle);
+    const y2 = toY - headLength * Math.sin(angle) + headWidth * Math.cos(angle);
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255, 255, 255)";
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.closePath();
+    ctx.fill();
+}
+
