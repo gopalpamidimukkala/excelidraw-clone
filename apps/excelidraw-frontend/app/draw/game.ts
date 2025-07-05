@@ -25,7 +25,13 @@ type Shape = {
     endX: number;
     endY: number;
 } | {
-    type : "hand";
+    type : "text";
+    x: number;
+    y: number;
+    content: string;
+    fontSize?: number;
+} | {
+    type: "hand"
 }
 
 export class Game {
@@ -61,7 +67,7 @@ export class Game {
         this.canvas.removeEventListener("mousemove", this.mouseMoveHandler)
     }
 
-    setTool(tool: "circle" | "line" | "rect" | "hand" | "arrow") {
+    setTool(tool: "circle" | "line" | "rect" | "hand" | "arrow" | "text") {
         this.selectedTool = tool;
     }
 
@@ -111,7 +117,12 @@ export class Game {
                 this.ctx.stroke();
                 drawArrowHead(this.ctx, shape.startX, shape.startY, shape.endX, shape.endY);
                 this.ctx.closePath();
-            }
+            } else if (shape.type === "text") {
+                this.ctx.fillStyle = "white";
+                this.ctx.font = `${shape.fontSize || 16}px sans-serif`;
+                this.ctx.fillText(shape.content, shape.x, shape.y);
+}
+
 
         })
     }
@@ -120,6 +131,10 @@ export class Game {
         this.clicked = true
         this.startX = e.clientX
         this.startY = e.clientY
+        // if (this.selectedTool === "text") {
+        //     this.insertTextAt(this.startX, this.startY);
+        //     return;
+        // }
     }
     mouseUpHandler = (e : any) => {
         this.clicked = false
@@ -161,6 +176,20 @@ export class Game {
                 endX: e.clientX,
                 endY: e.clientY
             }
+        } else if (selectedTool === "text") {
+                const canvasX = e.clientX;
+                const canvasY = e.clientY;
+
+                const content = prompt("Enter the Text:");
+                if (content) {
+                    shape = {
+                        type: "text",
+                        x: canvasX,
+                        y: canvasY,
+                        content,
+                        fontSize: 20
+                    }
+                }
         }
 
 
@@ -258,4 +287,3 @@ function drawArrowHead(
     ctx.closePath();
     ctx.fill();
 }
-

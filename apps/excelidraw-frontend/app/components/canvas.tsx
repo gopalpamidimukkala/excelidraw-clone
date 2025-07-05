@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Hand, Circle, Minus, RectangleHorizontalIcon, MoveRight } from "lucide-react";
+import { Hand, Circle, Minus, RectangleHorizontalIcon, MoveRight, TypeOutline } from "lucide-react";
 import { Game } from "@/app/draw/game";
 
-export type Tool = "circle" | "rect" | "line" | "hand" | "arrow";
+export type Tool = "circle" | "rect" | "line" | "hand" | "arrow" | "text";
 
 export function Canvas({
     roomId,
@@ -15,6 +15,17 @@ export function Canvas({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [game, setGame] = useState<Game>();
     const [selectedTool, setSelectedTool] = useState<Tool>("hand")
+
+    useEffect(() => {
+        const preventScroll = (e: WheelEvent) => {
+            if (e.ctrlKey || e.metaKey) return; // allow pinch-zoom on mac
+            e.preventDefault();
+        };
+        document.addEventListener("wheel", preventScroll, { passive: false });
+        return () => {
+            document.removeEventListener("wheel", preventScroll);
+        };
+    }, []);
 
     useEffect(() => {
         game?.setTool(selectedTool);
@@ -68,6 +79,9 @@ function Topbar({selectedTool, setSelectedTool}: {
                 <IconButton onClick={() => {
                         setSelectedTool("line")
                 }} activated={selectedTool === "line"} icon={<Minus/>}/>
+                <IconButton onClick={() => {
+                        setSelectedTool("text")
+                }} activated={selectedTool === "text"} icon={<TypeOutline/>}/>
             </div>
         </div>
 }
