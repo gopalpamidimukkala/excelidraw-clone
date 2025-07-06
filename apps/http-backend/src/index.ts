@@ -13,7 +13,7 @@ app.use(cors())
 app.use(express.json())
 
 app.post('/api/v1/signup', async (req, res) => {
-    console.log("entered the api");
+    
     try {
         const safeParse = SignUpSchema.safeParse(req.body)
 
@@ -80,20 +80,20 @@ try {
 
 app.post('/api/v1/room', middleware , async(req, res) => {
     try {
-        console.log("entered the api")
+       
         const safeParse = RoomSchema.safeParse(req.body);
         if (safeParse.success) {
-            console.log("entered the safe parse")
+          
             //@ts-ignore
             const adminId = req.userId;
-            console.log(adminId)
+           
             const response = await prismaClient.room.create({
                 data : {
                     slug : safeParse.data.name,
                     adminId
                 }
             })
-            console.log(response)
+         
             res.status(200).json({roomID: response.id})
         } else {
             res.status(401).json("Invalid Input")

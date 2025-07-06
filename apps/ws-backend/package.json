@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-   "build": "tsc -b",
+    "build": "tsc -b",
     "start": "node ./dist/index.js",
-    "dev": "npm run build && npm run start"
+    "dev": "npm run build && npm run start",
+    "worker" : "node ./dist/worker.js"
   },
   "devDependencies": {
+    "@repo/backend-common": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-     "@repo/backend-common": "workspace:*",
-      "@types/ws": "^8.18.1"
+    "@types/ws": "^8.18.1"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,8 @@
   "dependencies": {
     "@repo/db": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
+    "bullmq": "^5.56.1",
+    "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "ws": "^8.18.2"
   }

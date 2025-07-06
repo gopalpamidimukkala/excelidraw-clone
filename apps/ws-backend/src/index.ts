@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import jwt from 'jsonwebtoken'
 import { prismaClient } from "@repo/db/client";
+import { chatQueue } from "./queue";
 const wss = new WebSocketServer({ port : 8080 })
 interface User {
     ws : WebSocket,
@@ -73,13 +74,23 @@ wss.on("connection", function connection(ws, req) {
             const roomId = parsedData.roomId;
             const message = parsedData.message;
 
-            await prismaClient.chat.create({
-                data : {
-                    roomId : parseInt(roomId),
-                    message,
-                    userId
-                }
-            })
+            await chatQueue.add('savaChat',{
+                roomId: parseInt(roomId),
+                message,
+                userId
+            }, {
+                attempts: 3,
+                removeOnComplete: true,
+                removeOnFail: false,
+            });
+            console.log("shape added to worker queue")
+            // await prismaClient.chat.create({
+            //     data : {
+            //         roomId : parseInt(roomId),
+            //         message,
+            //         userId
+            //     }
+            // })
             users.forEach(user => {
                 if (user.rooms.includes(roomId)) {
                     user.ws.send(JSON.stringify({
